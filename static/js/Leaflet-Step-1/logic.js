@@ -1,6 +1,8 @@
 //function to create map
 function createMap(earthquakes){
 
+console.log(earthquakes)
+
 var myMap = L.map("map", {
     center: [37.09, -95.71],
     zoom: 5,
@@ -70,7 +72,17 @@ L.geoJSON(earthquakes, {
     onEachFeature:onEachFeature
 }).addTo(myMap);
 
-
+// Create a legend to display information about our map
+var legend = L.control({position: 'bottomright'});
+legend.onAdd = function(map){
+    var div = L.DomUtil.create('div', 'legend');
+    grades = [0,1,2,3,4,5];
+    for (var i=0;i<grades.length;i++){
+        div.innerHTML += '<i style="background:' + markercolor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+};
+legend.addTo(myMap);
 }
 
 //Call earthquake data for last 7 days and build on map
