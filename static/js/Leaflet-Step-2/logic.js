@@ -22,7 +22,7 @@ function markercolor(magnitude){
 //function to create map
 function createMap(earthquakes){
 
-    console.log(earthquakes)
+    //console.log(earthquakes)
     //outdoormap
     var outdoormap= L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -32,8 +32,7 @@ function createMap(earthquakes){
     id: "mapbox/outdoors-v11",
     accessToken: API_KEY
     })
-    // .addTo(myMap)
-
+    
     //satelitte map
     var satellitemap=L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
         attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -54,7 +53,9 @@ function createMap(earthquakes){
         accessToken: API_KEY
     })
 
+    //Add layer for tectonic plates
     var tectonicPlates=new L.LayerGroup()
+    //Read tectonic plates data from github and creating line map for same and adding to tectonic plate layer
     d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", data=>{
            
         L.geoJSON(data, {
@@ -62,8 +63,6 @@ function createMap(earthquakes){
             weight:2
         }).addTo(tectonicPlates)
     });
-
-    //console.log(tectonicPlates)
 
     //Create variable to store all base maps
     var baseMaps={
@@ -78,17 +77,19 @@ function createMap(earthquakes){
         "Fault Line":tectonicPlates
     }
     
+    //Create map with outdoor map as base map and earthquake and tectonic plate control layers selected
     var myMap = L.map("map", {
         center: [37.09, -95.71],
         zoom: 4,
         layers: [outdoormap,earthquakes,tectonicPlates]
     });
     
+    //Create control layer on the map
     L.control.layers(baseMaps, overlayMaps, {
         collapsed: false
       }).addTo(myMap);
     
-    // Create a legend to display information about our map
+    // Create a legend to display information about coloring for earthquake
     var legend = L.control({position: 'bottomright'});
     legend.onAdd = function(map){
         var div = L.DomUtil.create('div', 'legend');
@@ -101,12 +102,12 @@ function createMap(earthquakes){
     legend.addTo(myMap);
 }
 
+//function to build markers for earthquake
 function createEarthQuakeLayer(earthquakeData){
 
     console.log(earthquakeData)
     //function to set the style of circle shown as markesr for earthquake
     var geojsonMarkerOptions = {
-        //fillcolor:"#DF3A01",
         color: "#000",
         weight: 1,
         opacity: 1,
@@ -136,31 +137,11 @@ function createEarthQuakeLayer(earthquakeData){
         onEachFeature:onEachFeature
     })
 
-    // Pass erthquake map to create map function
+    // Pass erthquake markers to create map function
     createMap(earthquakes);
     
 }
 
-//Function to use faultline data to add on map
-function createfaultline(){
-
-    d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", data=>{
-        //console.log(data.features)
-        //Variable for line styling
-        var linestyle={
-        color:"red",
-        weight:5,
-        opacity:0.65
-        }
-    
-        var faultline = L.geoJSON(data, {
-            style:linestyle
-        })
-        return(faultline);
-    });
-    
-}
-    
 //Call earthquake data for last 7 days and build on map
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson", data=>{
     console.log(data)
