@@ -53,7 +53,18 @@ function createMap(earthquakes){
         id: "mapbox/dark-v10",
         accessToken: API_KEY
     })
-    
+
+    var tectonicPlates=new L.LayerGroup()
+    d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", data=>{
+           
+        L.geoJSON(data, {
+            color:"red",
+            weight:2
+        }).addTo(tectonicPlates)
+    });
+
+    //console.log(tectonicPlates)
+
     //Create variable to store all base maps
     var baseMaps={
         "outdoor":outdoormap,
@@ -63,17 +74,19 @@ function createMap(earthquakes){
 
     //Create variable to store all overlay maps
     var overlayMaps={
-        "Earthquake":earthquakes
+        "Earthquake":earthquakes,
+        "Fault Line":tectonicPlates
     }
     
     var myMap = L.map("map", {
         center: [37.09, -95.71],
-        zoom: 5,
-        layers: [outdoormap,earthquakes]
+        zoom: 4,
+        layers: [outdoormap,earthquakes,tectonicPlates]
     });
     
-    L.control.layers(baseMaps,overlayMaps).addTo(myMap);
-    // ,overlaymaps
+    L.control.layers(baseMaps, overlayMaps, {
+        collapsed: false
+      }).addTo(myMap);
     
     // Create a legend to display information about our map
     var legend = L.control({position: 'bottomright'});
@@ -102,9 +115,9 @@ function createEarthQuakeLayer(earthquakeData){
 
     //Function to show pop-up on click of each circle
     function onEachFeature(feature, layer) {
-        layer.bindPopup("<h3> Location:<hr>" + feature.properties.place +
-          "</h3><hr><p>Date:<hr>" + new Date(feature.properties.time) + 
-          "</p><hr><p>Magnitude:<hr>" + feature.properties.mag + "</p>");
+        layer.bindPopup("<p> <b>Location:<hr>" + feature.properties.place +
+          "</p><hr><p><b>Date:<hr>" + new Date(feature.properties.time) + 
+          "</p><hr><p><b>Magnitude:<hr>" + feature.properties.mag + "</p>");
     }
     
     // Create a GeoJSON layer containing the features array on the earthquakeData object
@@ -127,9 +140,31 @@ function createEarthQuakeLayer(earthquakeData){
     createMap(earthquakes);
     
 }
+
+//Function to use faultline data to add on map
+function createfaultline(){
+
+    d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", data=>{
+        //console.log(data.features)
+        //Variable for line styling
+        var linestyle={
+        color:"red",
+        weight:5,
+        opacity:0.65
+        }
+    
+        var faultline = L.geoJSON(data, {
+            style:linestyle
+        })
+        return(faultline);
+    });
+    
+}
     
 //Call earthquake data for last 7 days and build on map
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson", data=>{
     console.log(data)
     createEarthQuakeLayer(data.features);
 });
+
+
